@@ -1,27 +1,30 @@
-name: Check with Sonar
-on:
-  push:
-    branches:
-      - master
-      - dev
 jobs:
   build-jdk17:
-    runs-on: ubuntu-latest
     name: Build with Java 17
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v1
-        with:
-          java-version: 17
-      - name: Send to Sonarcloud
-        run: mvn -B verify sonar:sonar -Dsonar.sources=src/main/java,target/generated-sources/delombok
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - continue-on-error: true
+      uses: actions/checkout@v2
+    - continue-on-error: true
+      uses: actions/cache@v1
+      with:
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        path: ~/.m2/repository
+        restore-keys: '${{ runner.os }}-maven-
+
+          '
+    - continue-on-error: true
+      name: Set up JDK 17
+      uses: actions/setup-java@v1
+      with:
+        java-version: 17
+    - continue-on-error: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      name: Send to Sonarcloud
+      run: mvn -B verify sonar:sonar -Dsonar.sources=src/main/java,target/generated-sources/delombok
+name: Check with Sonar
+on:
+  repository_dispatch:
+    types: trigger-ga___sonar.yml
